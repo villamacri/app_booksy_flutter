@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -228,7 +229,12 @@ class LoginScreen extends StatelessWidget {
                           style: TextStyle(color: Colors.grey),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                            );
+                          },
                           child: const Text(
                             'Regístrate',
                             style: TextStyle(
