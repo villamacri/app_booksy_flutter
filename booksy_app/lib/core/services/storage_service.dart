@@ -1,16 +1,9 @@
 class StorageService {
-  // TODO: Implementar con flutter_secure_storage
-  
-  Future<void> saveToken(String token) async {
-    // Guarda el token en el dispositivo
-  }
+  Future<void> saveToken(String token) async {}
 
   Future<String?> getToken() async {
-    // Recupera el token del dispositivo
-    return null; 
+    return null;
   }
 
-  Future<void> deleteToken() async {
-    // Borra el token al hacer logout
-  }
+  Future<void> deleteToken() async {}
 }

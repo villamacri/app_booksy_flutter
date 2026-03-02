@@ -4,10 +4,9 @@ class LoginRequest {
 
   LoginRequest({required this.email, required this.password});
 
-  /// Convierte nuestra clase Dart en un mapa JSON para la petición HTTP POST
   Map<String, dynamic> toJson() {
     return {
-      'email': email.trim(), // Limpiamos espacios accidentales
+      'email': email.trim(),
       'password': password,
     };
   }

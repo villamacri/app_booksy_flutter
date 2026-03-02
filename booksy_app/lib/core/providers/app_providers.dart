@@ -19,13 +19,11 @@ class AppProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Inyectamos los Servicios
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: storageService),
         RepositoryProvider.value(value: authService),
       ],
-      // 2. Inyectamos los Gestores de Estado (BLoCs)
       child: MultiBlocProvider(
         providers: [
           BlocProvider<LoginPageBloc>(
@@ -34,7 +32,6 @@ class AppProviders extends StatelessWidget {
               storageService: storageService,
             ),
           ),
-          // TODO: Añadir aquí el RegisterBloc, HomeBloc, etc. en el futuro
         ],
         child: child,
       ),
