@@ -6,9 +6,7 @@ import '../models/user/login/login_request.dart';
 import '../models/user/login/login_response.dart';
 
 class AuthService implements IAuthService {
-  // ATENCIÓN: Si usas emulador Android, localhost es 10.0.2.2
-  // Si usas iOS Simulator o Web, suele ser 127.0.0.1 o localhost
-  // Cambia el puerto si tu Apache no corre en el 80.
+
   static const String _baseUrl = 'http://10.0.2.2:8000/api';
 
   @override
