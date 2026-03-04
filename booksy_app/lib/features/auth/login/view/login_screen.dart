@@ -55,10 +55,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Bienvenido a Booksy!'),
+                  content: Text('¡Bienvenido a BookMeet!'),
                   backgroundColor: Colors.green,
                 ),
               );
+              Navigator.pushReplacementNamed(context, '/home-user');
             }
           },
           builder: (context, state) {
@@ -80,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        'Booksy',
+                        'BookMeet',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 32,
@@ -108,12 +109,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty)
+                          if (value == null || value.trim().isEmpty) {
                             return 'El correo es obligatorio';
+                          }
                           if (!RegExp(
                             r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                          ).hasMatch(value))
+                          ).hasMatch(value)) {
                             return 'Introduce un correo válido';
+                          }
                           return null;
                         },
                       ),
@@ -142,15 +145,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'La contraseña es obligatoria';
+                          }
                           return null;
                         },
                       ),
                       const SizedBox(height: 32),
                       SizedBox(
-                        height:
-                            52, // Altura fija para evitar saltos visuales al cambiar a spinner
+                        height: 52,
                         child: FilledButton(
                           onPressed: isLoading ? null : _onLoginPressed,
                           style: FilledButton.styleFrom(
@@ -183,22 +186,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: isLoading
                             ? null
                             : () {
-                                // Navegamos a la pantalla de registro
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const RegisterScreen(),
-                                  ),
-                                );
+                                Navigator.pushNamed(context, '/register');
                               },
                         child: const Text.rich(
                           TextSpan(
-                            style: TextStyle(
-                              color:
-                                  Colors.grey, // Color neutro para la pregunta
-                              fontSize: 14,
-                            ),
+                            style: TextStyle(color: Colors.grey, fontSize: 14),
                             children: [
                               TextSpan(text: '¿No tienes cuenta? '),
                               TextSpan(

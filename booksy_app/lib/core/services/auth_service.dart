@@ -6,8 +6,12 @@ import '../models/user/login/login_request.dart';
 import '../models/user/login/login_response.dart';
 import '../models/user/register/register_request.dart';
 
+import 'storage_service.dart'; 
+
 class AuthService implements IAuthService {
   static const String _baseUrl = 'http://10.0.2.2:8000/api';
+  
+  final StorageService _storage = StorageService();
 
   @override
   Future<LoginResponse> login(LoginRequest request) async {
@@ -25,7 +29,14 @@ class AuthService implements IAuthService {
 
       if (response.statusCode == 200) {
         final jsonBody = jsonDecode(response.body);
+        
+        await _storage.saveToken(jsonBody['token']);
+        
+        final role = jsonBody['user']['role'] ?? 'user';
+        await _storage.saveRole(role);
+
         return LoginResponse.fromJson(jsonBody);
+        
       } else if (response.statusCode == 401 || response.statusCode == 422) {
         final errorBody = jsonDecode(response.body);
         throw Exception(errorBody['message'] ?? 'Credenciales incorrectas');
@@ -53,6 +64,11 @@ class AuthService implements IAuthService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonBody = jsonDecode(response.body);
+        
+        await _storage.saveToken(jsonBody['token']);
+        final role = jsonBody['user']['role'] ?? 'user';
+        await _storage.saveRole(role);
+
         return LoginResponse.fromJson(jsonBody); 
         
       } else if (response.statusCode == 422) {
@@ -81,7 +97,9 @@ class AuthService implements IAuthService {
         },
       );
 
-      if (response.statusCode != 200 && response.statusCode != 204) {
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        await _storage.deleteAll();
+      } else {
         throw Exception('Fallo al cerrar sesión en el servidor');
       }
     } catch (e) {

@@ -7,7 +7,7 @@ class BookRequest {
   final String estadoFisico; 
   final String tipoOperacion; 
   final double? precio;
-  final String? fechaPublicacion; // Añadido para coincidir con tu BD
+  final String? fechaPublicacion; 
   final int categoriaId; 
 
   BookRequest({
@@ -25,18 +25,18 @@ class BookRequest {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
-      'titulo': titulo,
-      'autor': autor,
-      'estado_fisico': estadoFisico,
-      'tipo_operacion': tipoOperacion,
-      'categoria_id': categoriaId,
+      'title': titulo,
+      'author': autor,
+      'condition': estadoFisico,
+      'operation_type': tipoOperacion, 
+      'category_id': categoriaId,
     };
 
-    if (editorial != null && editorial!.isNotEmpty) map['editorial'] = editorial;
-    if (anioEditorial != null) map['anio_editorial'] = anioEditorial;
-    if (descripcion != null && descripcion!.isNotEmpty) map['descripcion'] = descripcion;
-    if (precio != null) map['precio'] = precio;
-    if (fechaPublicacion != null) map['fecha_publicacion'] = fechaPublicacion;
+    if (editorial != null && editorial!.isNotEmpty) map['publisher'] = editorial;
+    if (anioEditorial != null) map['publication_year'] = anioEditorial;
+    if (descripcion != null && descripcion!.isNotEmpty) map['description'] = descripcion;
+    if (precio != null) map['price'] = precio;
+    if (fechaPublicacion != null) map['published_date'] = fechaPublicacion;
 
     return map;
   }

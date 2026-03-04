@@ -1,23 +1,9 @@
+import 'package:booksy_app/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 
-import 'core/providers/app_providers.dart';
-import 'core/services/auth_service.dart';
-import 'core/services/storage_service.dart';
-import 'features/auth/login/view/login_screen.dart';
-
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final storageService = StorageService();
-  final authService = AuthService();
-
-  runApp(
-    AppProviders(
-      storageService: storageService,
-      authService: authService,
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -26,14 +12,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'RepoBooksy',
+      title: 'BookMeet',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
       ),
-
-      home: const LoginScreen(),
+      initialRoute: '/login',
+      onGenerateRoute: AppRoutes.generateRoute, 
     );
   }
 }
