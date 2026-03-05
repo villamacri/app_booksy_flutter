@@ -1,7 +1,10 @@
 import 'package:booksy_app/features/home/bloc/home_bloc.dart';
 import 'package:booksy_app/features/home/bloc/home_event.dart';
 import 'package:booksy_app/features/home/bloc/home_state.dart';
+import 'package:booksy_app/features/profile/bloc/profile_bloc.dart';
+import 'package:booksy_app/features/profile/bloc/profile_state.dart';
 import 'package:booksy_app/features/book/view/book_detail_screen.dart';
+import 'package:booksy_app/core/view/connection_error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,6 +28,11 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
   Widget build(BuildContext context) {
     const primaryBlue = Color(0xFF5D9CFF);
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final profileState = context.watch<ProfileBloc>().state;
+    final userName = profileState is ProfileLoaded
+        ? profileState.user.name.trim()
+        : 'Usuario';
+    final safeUserName = userName.isEmpty ? 'Usuario' : userName;
 
     return SingleChildScrollView(
       child: Stack(
@@ -57,12 +65,12 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
                   if (state is HomeError) {
                     return SizedBox(
                       height: MediaQuery.sizeOf(context).height,
-                      child: Center(
-                        child: Text(
-                          'Error: ${state.message}',
-                          style: const TextStyle(color: Colors.red),
-                          textAlign: TextAlign.center,
-                        ),
+                      child: ConnectionErrorView(
+                        onRetry: () {
+                          context.read<HomeBloc>().add(
+                            FetchHomeData(city: _selectedCity),
+                          );
+                        },
                       ),
                     );
                   }
@@ -104,8 +112,8 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                          'Hola, Lector',
+                        Text(
+                          'Hola, $safeUserName',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -159,25 +167,13 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Últimos libros añadidos',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            Text(
-                              'Ver catálogo',
-                              style: TextStyle(
-                                color: primaryBlue,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                        const Text(
+                          'Últimos libros añadidos',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
@@ -200,25 +196,13 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
                         ),
                         const SizedBox(height: 30),
 
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Quedadas en tu ciudad',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            Text(
-                              'Ver mapa',
-                              style: TextStyle(
-                                color: primaryBlue,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                        const Text(
+                          'Quedadas en tu ciudad',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
@@ -289,13 +273,12 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
                                             myAppointments[index];
                                         final meetup = appointment.meetup;
 
-                                        final title = meetup == null
-                                            ? 'Cita confirmada'
-                                            : (meetup.location ?? meetup.title);
+                                        final title =
+                                            meetup?.title ??
+                                            'Evento sin nombre';
 
-                                        final subtitle = meetup == null
-                                            ? 'Estado: ${appointment.status}'
-                                            : '${meetup.dateTime.toString()} • ${meetup.city}';
+                                        final subtitle =
+                                            'Estado: ${appointment.status}';
 
                                         return _buildJoinedEventTile(
                                           Icons.check_circle,

@@ -1,9 +1,9 @@
-import 'dart:convert';
-
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/home/home_feed_response.dart';
 import '../models/book/book_response.dart';
+import '../utils/safe_json_decode.dart';
 import 'storage_service.dart';
 
 class HomeService {
@@ -71,11 +71,13 @@ class HomeService {
       headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
+    debugPrint('JSON CRUDO DEL BACKEND: ${response.body}');
+
     if (response.statusCode != 200) {
       throw Exception('Server error: ${response.statusCode}');
     }
 
-    final decodedBody = jsonDecode(response.body);
+    final decodedBody = safeJsonDecode(response.body);
 
     if (decodedBody is! Map<String, dynamic>) {
       throw Exception('Invalid response format');

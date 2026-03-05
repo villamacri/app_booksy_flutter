@@ -16,6 +16,7 @@ import 'package:booksy_app/features/profile/bloc/profile_bloc.dart';
 import 'package:booksy_app/features/profile/bloc/profile_event.dart';
 import 'package:booksy_app/features/profile/view/profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'home_user_screen.dart'; // Importamos la vista del dashboard
 
@@ -67,6 +68,43 @@ class _NavigatorViewState extends State<NavigatorView> {
     });
   }
 
+  Future<void> _handleRootBackNavigation() async {
+    if (_selectedIndex != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      return;
+    }
+
+    final shouldExit =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text('Confirmar salida'),
+              content: const Text('¿Quieres cerrar la aplicación?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text('Salir'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!mounted || !shouldExit) {
+      return;
+    }
+
+    await SystemNavigator.pop();
+  }
+
   @override
   void dispose() {
     _catalogBloc.close();
@@ -89,17 +127,13 @@ class _NavigatorViewState extends State<NavigatorView> {
       child: Builder(
         builder: (innerContext) {
           return PopScope(
-            canPop: _selectedIndex == 0,
-            onPopInvokedWithResult: (didPop, result) {
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) async {
               if (didPop) {
                 return;
               }
 
-              if (_selectedIndex != 0) {
-                setState(() {
-                  _selectedIndex = 0;
-                });
-              }
+              await _handleRootBackNavigation();
             },
             child: Scaffold(
               backgroundColor: const Color(0xFFF4F7FC), // Color de fondo global

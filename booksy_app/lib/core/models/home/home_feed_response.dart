@@ -124,15 +124,26 @@ class MeetupAttendance {
   });
 
   factory MeetupAttendance.fromJson(Map<String, dynamic> json) {
-    final meetupJson = json['meetup'];
+    final meetupJson =
+        _toMapOrNull(json['meetup']) ??
+        _toMapOrNull(json['event']) ??
+        _toMapOrNull(json['meetup_data']);
+
+    final nestedData = meetupJson == null
+        ? null
+        : _toMapOrNull(meetupJson['data']) ?? meetupJson;
+
+    final parsedMeetup = nestedData != null
+        ? Meetup.fromJson(nestedData)
+        : null;
+
+    final parsedMeetupId = _toInt(json['meetup_id']);
 
     return MeetupAttendance(
       id: _toInt(json['id']),
-      meetupId: _toInt(json['meetup_id']),
+      meetupId: parsedMeetupId > 0 ? parsedMeetupId : (parsedMeetup?.id ?? 0),
       status: _toString(json['status']),
-      meetup: meetupJson is Map<String, dynamic>
-          ? Meetup.fromJson(meetupJson)
-          : null,
+      meetup: parsedMeetup,
     );
   }
 }
@@ -185,6 +196,22 @@ bool _toBool(dynamic value) {
     return value.toLowerCase() == 'true' || value == '1';
   }
   return false;
+}
+
+Map<String, dynamic>? _toMapOrNull(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+
+  if (value is Map) {
+    try {
+      return Map<String, dynamic>.from(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  return null;
 }
 
 List<dynamic>? _extractList(dynamic value) {

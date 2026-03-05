@@ -13,19 +13,25 @@ class RegisterRequest {
     this.organizacion,
   });
 
-  /// Transforma nuestro objeto de Dart al JSON que Laravel entiende
   Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{
-      'nombre': nombre,
+    // Dividir el nombre completo del formulario en nombre y apellido para Laravel
+    final parts = nombre.trim().split(' ');
+    final firstName = parts.isNotEmpty ? parts.first : '';
+    final lastName = parts.length > 1
+        ? parts.sublist(1).join(' ')
+        : 'Sin apellido';
+
+    final map = {
+      'name': firstName,
+      'last_name': lastName,
       'email': email,
       'password': password,
-      // ATENCIÓN AQUÍ: Laravel exige estrictamente el snake_case para la confirmación
-      'password_confirmation': passwordConfirmation, 
+      'password_confirmation': passwordConfirmation,
     };
 
-    // Solo enviamos la organización si el usuario escribió algo
-    if (organizacion != null && organizacion!.trim().isNotEmpty) {
-      map['organizacion'] = organizacion;
+    // Solo enviamos la organización si no es nula/vacía y si existe en la BD
+    if (organizacion != null && organizacion!.isNotEmpty) {
+      map['organization'] = organizacion!;
     }
 
     return map;

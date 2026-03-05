@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import '../models/home/home_feed_response.dart';
+import '../utils/safe_json_decode.dart';
 import 'storage_service.dart';
 
 class MeetupService {
@@ -22,7 +21,7 @@ class MeetupService {
       throw Exception('Error al cargar eventos: ${response.statusCode}');
     }
 
-    final decoded = jsonDecode(response.body);
+    final decoded = safeJsonDecode(response.body);
     final List<dynamic> jsonList = decoded is Map && decoded.containsKey('data')
         ? decoded['data']
         : decoded;
@@ -73,7 +72,7 @@ class MeetupService {
       );
     }
 
-    final decoded = jsonDecode(response.body);
+    final decoded = safeJsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
       return <int>{};
     }
@@ -117,7 +116,7 @@ class MeetupService {
 
   String _extractErrorMessage(http.Response response) {
     try {
-      final decoded = jsonDecode(response.body);
+      final decoded = safeJsonDecode(response.body);
       if (decoded is Map<String, dynamic>) {
         final message = decoded['message'];
         if (message is String && message.trim().isNotEmpty) {

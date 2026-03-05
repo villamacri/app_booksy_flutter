@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:booksy_app/core/models/user/profile/profile_stats.dart';
 import 'package:http/http.dart' as http;
 
+import '../utils/safe_json_decode.dart';
 import 'storage_service.dart';
 
 class UserService {
@@ -32,7 +31,7 @@ class UserService {
 
     for (final response in responses) {
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
+        final decoded = safeJsonDecode(response.body);
         if (decoded is Map<String, dynamic>) {
           return ProfileStats.fromJson(decoded);
         }

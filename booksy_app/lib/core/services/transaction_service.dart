@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../utils/safe_json_decode.dart';
 import 'storage_service.dart';
 
 class TransactionService {
@@ -41,7 +42,7 @@ class TransactionService {
       String errorMessage = 'Error: ${response.statusCode}';
 
       try {
-        final body = jsonDecode(response.body);
+        final body = safeJsonDecode(response.body);
         if (body is Map<String, dynamic>) {
           if (body['errors'] != null) {
             final Map<String, dynamic> errors = body['errors'];

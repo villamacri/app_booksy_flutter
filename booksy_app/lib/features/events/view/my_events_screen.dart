@@ -1,6 +1,7 @@
 import 'package:booksy_app/features/events/bloc/meetup_bloc.dart';
 import 'package:booksy_app/features/events/bloc/meetup_event.dart';
 import 'package:booksy_app/features/events/bloc/meetup_state.dart';
+import 'package:booksy_app/core/view/connection_error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -45,11 +46,10 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           }
 
           if (state is MeetupError) {
-            return Center(
-              child: Text(
-                'Error: ${state.message}',
-                textAlign: TextAlign.center,
-              ),
+            return ConnectionErrorView(
+              onRetry: () {
+                context.read<MeetupBloc>().add(FetchMeetups());
+              },
             );
           }
 
