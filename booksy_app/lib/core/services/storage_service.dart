@@ -13,6 +13,10 @@ class StorageService {
     return await _storage.read(key: 'auth_token');
   }
 
+  Future<void> deleteToken() async {
+    await _storage.delete(key: 'auth_token');
+  }
+
   // Guardar el Rol del usuario (user, moderator, admin)
   Future<void> saveRole(String role) async {
     await _storage.write(key: 'user_role', value: role);
