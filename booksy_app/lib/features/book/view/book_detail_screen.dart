@@ -1,6 +1,6 @@
 import 'package:booksy_app/core/models/book/book_response.dart';
 import 'package:booksy_app/core/services/transaction_service.dart';
-import 'package:booksy_app/core/utils/translation_helper.dart';
+import 'package:booksy_app/core/utils/translation_helpers.dart';
 import 'package:booksy_app/features/book/bloc/transaction_bloc.dart';
 import 'package:booksy_app/features/book/bloc/transaction_event.dart';
 import 'package:booksy_app/features/book/bloc/transaction_state.dart';
@@ -157,12 +157,8 @@ class BookDetailScreen extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildInfoChip(
-                      TranslationHelper.translateCondition(book.estadoFisico),
-                    ),
-                    _buildInfoChip(
-                      TranslationHelper.translateOperation(book.tipoOperacion),
-                    ),
+                    _buildInfoChip(book.estadoFisico.toEsCondition()),
+                    _buildInfoChip(book.tipoOperacion.toEsOperationType()),
                     if (book.tipoOperacion == 'sale' && book.precio != null)
                       _buildInfoChip('€ ${book.precio!.toStringAsFixed(2)}'),
                   ],

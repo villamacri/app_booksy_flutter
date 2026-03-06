@@ -1,7 +1,8 @@
 import 'package:booksy_app/features/catalog/bloc/catalog_bloc.dart';
+import 'package:booksy_app/features/catalog/bloc/catalog_event.dart';
 import 'package:booksy_app/features/catalog/bloc/catalog_state.dart';
 import 'package:booksy_app/features/book/view/book_detail_screen.dart';
-import 'package:booksy_app/core/utils/translation_helper.dart';
+import 'package:booksy_app/core/utils/translation_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,8 +38,11 @@ class CatalogScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                onChanged: (query) {
+                  context.read<CatalogBloc>().add(SearchCatalog(query));
+                },
+                decoration: const InputDecoration(
                   hintText: 'Buscar libro o autor',
                   prefixIcon: Icon(Icons.search),
                   border: InputBorder.none,
@@ -67,7 +71,9 @@ class CatalogScreen extends StatelessWidget {
                   }
 
                   if (state is CatalogLoaded) {
-                    if (state.books.isEmpty) {
+                    final booksToShow = state.filteredBooks;
+
+                    if (state.allBooks.isEmpty) {
                       return const Center(
                         child: Text(
                           'No hay libros disponibles en el catálogo.',
@@ -75,8 +81,16 @@ class CatalogScreen extends StatelessWidget {
                       );
                     }
 
+                    if (booksToShow.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No se encontraron libros para tu búsqueda.',
+                        ),
+                      );
+                    }
+
                     return GridView.builder(
-                      itemCount: state.books.length,
+                      itemCount: booksToShow.length,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
@@ -85,7 +99,7 @@ class CatalogScreen extends StatelessWidget {
                             childAspectRatio: 0.72,
                           ),
                       itemBuilder: (context, index) {
-                        final book = state.books[index];
+                        final book = booksToShow[index];
 
                         return InkWell(
                           onTap: () {
@@ -155,7 +169,7 @@ class CatalogScreen extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Condición: ${TranslationHelper.translateCondition(book.estadoFisico)}',
+                                        'Condición: ${book.estadoFisico.toEsCondition()}',
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: Colors.black54,
@@ -165,7 +179,7 @@ class CatalogScreen extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Tipo: ${TranslationHelper.translateOperation(book.tipoOperacion)}',
+                                        'Tipo: ${book.tipoOperacion.toEsOperationType()}',
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: Colors.black54,

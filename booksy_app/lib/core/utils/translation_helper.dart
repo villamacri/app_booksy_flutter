@@ -1,31 +1,15 @@
+import 'package:booksy_app/core/utils/translation_helpers.dart' as helpers;
+
 class TranslationHelper {
-  static String translateCondition(String condition) {
-    switch (condition) {
-      case 'new':
-        return 'Nuevo';
-      case 'like_new':
-        return 'Como nuevo';
-      case 'good':
-        return 'Bueno';
-      case 'acceptable':
-        return 'Aceptable';
-      case 'poor':
-        return 'Desgastado';
-      default:
-        return condition;
-    }
+  static String translateCondition(String? condition) {
+    return helpers.translateCondition(condition);
   }
 
-  static String translateOperation(String type) {
-    switch (type) {
-      case 'sale':
-        return 'Venta';
-      case 'exchange':
-        return 'Intercambio';
-      case 'both':
-        return 'Venta / Intercambio';
-      default:
-        return type;
-    }
+  static String translateOperation(String? type) {
+    return helpers.translateOperationType(type);
+  }
+
+  static String translateStatus(String? status) {
+    return helpers.translateStatus(status);
   }
 }

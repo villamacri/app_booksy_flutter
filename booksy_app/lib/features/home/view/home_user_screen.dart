@@ -4,6 +4,7 @@ import 'package:booksy_app/features/home/bloc/home_state.dart';
 import 'package:booksy_app/features/profile/bloc/profile_bloc.dart';
 import 'package:booksy_app/features/profile/bloc/profile_state.dart';
 import 'package:booksy_app/features/book/view/book_detail_screen.dart';
+import 'package:booksy_app/core/utils/translation_helpers.dart';
 import 'package:booksy_app/core/view/connection_error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -278,7 +279,7 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
                                             'Evento sin nombre';
 
                                         final subtitle =
-                                            'Estado: ${appointment.status}';
+                                            'Estado: ${appointment.status.toEsStatus()}';
 
                                         return _buildJoinedEventTile(
                                           Icons.check_circle,

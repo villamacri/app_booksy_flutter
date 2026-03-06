@@ -56,10 +56,14 @@ class BookService {
       if (response.statusCode == 200) {
         final decodedBody = safeJsonDecode(response.body);
 
-        final List<dynamic> jsonList =
+        final List<dynamic>? jsonList =
             decodedBody is Map && decodedBody.containsKey('data')
-            ? decodedBody['data']
-            : decodedBody;
+            ? decodedBody['data'] as List<dynamic>?
+            : (decodedBody is List ? decodedBody : null);
+
+        if (jsonList == null || jsonList.isEmpty) {
+          return [];
+        }
 
         return BookResponse.fromJsonList(jsonList);
       } else {

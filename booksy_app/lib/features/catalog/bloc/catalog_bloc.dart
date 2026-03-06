@@ -10,6 +10,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
     : _bookService = bookService,
       super(CatalogLoading()) {
     on<FetchCatalog>(_onFetchCatalog);
+    on<SearchCatalog>(_onSearchCatalog);
   }
 
   Future<void> _onFetchCatalog(
@@ -20,9 +21,32 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
 
     try {
       final books = await _bookService.getAllBooks();
-      emit(CatalogLoaded(books));
+      emit(CatalogLoaded(allBooks: books, filteredBooks: books));
     } catch (e) {
       emit(CatalogError(e.toString().replaceAll('Exception: ', '')));
     }
+  }
+
+  void _onSearchCatalog(SearchCatalog event, Emitter<CatalogState> emit) {
+    if (state is! CatalogLoaded) {
+      return;
+    }
+
+    final currentState = state as CatalogLoaded;
+    final normalizedQuery = event.query.trim().toLowerCase();
+
+    final filtered = currentState.allBooks.where((book) {
+      final titleMatch = book.titulo.toLowerCase().contains(normalizedQuery);
+      final authorMatch = book.autor.toLowerCase().contains(normalizedQuery);
+      return titleMatch || authorMatch;
+    }).toList();
+
+    emit(
+      CatalogLoaded(
+        allBooks: currentState.allBooks,
+        filteredBooks: filtered,
+        query: event.query,
+      ),
+    );
   }
 }

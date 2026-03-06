@@ -7,9 +7,15 @@ abstract class CatalogState {}
 class CatalogLoading extends CatalogState {}
 
 class CatalogLoaded extends CatalogState {
-  final List<Book> books;
+  final List<Book> allBooks;
+  final List<Book> filteredBooks;
+  final String query;
 
-  CatalogLoaded(this.books);
+  CatalogLoaded({
+    required this.allBooks,
+    required this.filteredBooks,
+    this.query = '',
+  });
 }
 
 class CatalogError extends CatalogState {
