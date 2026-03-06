@@ -160,7 +160,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
-                  value: _condition,
+                  initialValue: _condition,
                   decoration: const InputDecoration(
                     labelText: 'Condición',
                     border: OutlineInputBorder(),
@@ -189,7 +189,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
-                  value: _operationType,
+                  initialValue: _operationType,
                   decoration: const InputDecoration(
                     labelText: 'Tipo de Operación',
                     border: OutlineInputBorder(),
@@ -310,7 +310,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     }
 
                     return DropdownButtonFormField<int>(
-                      value: selectedCategoryId,
+                      initialValue: selectedCategoryId,
                       decoration: const InputDecoration(
                         labelText: 'Categoría',
                         border: OutlineInputBorder(),
