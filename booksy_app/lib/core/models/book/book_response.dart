@@ -12,6 +12,18 @@ class BookResponse {
   final int usuarioId; // Importante para saber de quién es el libro
   final String estadoLibro; // ej: 'available', 'exchanged'
 
+  String get operationType {
+    if (tipoOperacion == 'sale' || tipoOperacion == 'exchange') {
+      return tipoOperacion;
+    }
+
+    if (tipoOperacion == 'both') {
+      return 'exchange';
+    }
+
+    return 'exchange';
+  }
+
   BookResponse({
     required this.id,
     required this.titulo,
@@ -33,13 +45,21 @@ class BookResponse {
       titulo: json['title'] ?? 'Sin título',
       autor: json['author'] ?? 'Autor desconocido',
       editorial: json['publisher'],
-      anioEditorial: json['publication_year'] is String ? int.parse(json['publication_year']) : json['publication_year'],
+      anioEditorial: json['publication_year'] is String
+          ? int.parse(json['publication_year'])
+          : json['publication_year'],
       descripcion: json['description'],
       estadoFisico: json['condition'] ?? 'used',
       tipoOperacion: json['operation_type'] ?? 'exchange',
-      precio: json['price'] != null ? double.parse(json['price'].toString()) : null,
-      categoriaId: json['category_id'] is String ? int.parse(json['category_id']) : json['category_id'],
-      usuarioId: json['user_id'] is String ? int.parse(json['user_id']) : json['user_id'],
+      precio: json['price'] != null
+          ? double.parse(json['price'].toString())
+          : null,
+      categoriaId: json['category_id'] is String
+          ? int.parse(json['category_id'])
+          : json['category_id'],
+      usuarioId: json['user_id'] is String
+          ? int.parse(json['user_id'])
+          : json['user_id'],
       estadoLibro: json['status'] ?? 'available',
     );
   }

@@ -1,17 +1,38 @@
-import 'package:booksy_app/features/book/bloc/book_page_state.dart';
+import 'package:booksy_app/features/home/bloc/home_bloc.dart';
+import 'package:booksy_app/features/home/bloc/home_event.dart';
+import 'package:booksy_app/features/home/bloc/home_state.dart';
+import 'package:booksy_app/features/profile/bloc/profile_bloc.dart';
+import 'package:booksy_app/features/profile/bloc/profile_state.dart';
+import 'package:booksy_app/features/book/view/book_detail_screen.dart';
+import 'package:booksy_app/core/view/connection_error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Importa tu BLoC de libros y sus estados (ajusta la ruta si los estados están en otro archivo)
-import 'package:booksy_app/features/book/bloc/book_page_bloc.dart';
-
-class HomeUserScreen extends StatelessWidget {
+class HomeUserScreen extends StatefulWidget {
   const HomeUserScreen({super.key});
+
+  @override
+  State<HomeUserScreen> createState() => _HomeUserScreenState();
+}
+
+class _HomeUserScreenState extends State<HomeUserScreen> {
+  String _selectedCity = 'Sevilla';
+  static const List<String> _cities = [
+    'Sevilla',
+    'Madrid',
+    'Barcelona',
+    'Valencia',
+  ];
 
   @override
   Widget build(BuildContext context) {
     const primaryBlue = Color(0xFF5D9CFF);
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final profileState = context.watch<ProfileBloc>().state;
+    final userName = profileState is ProfileLoaded
+        ? profileState.user.name.trim()
+        : 'Usuario';
+    final safeUserName = userName.isEmpty ? 'Usuario' : userName;
 
     return SingleChildScrollView(
       child: Stack(
@@ -30,143 +51,253 @@ class HomeUserScreen extends StatelessWidget {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.menu, color: Colors.white),
+              child: BlocBuilder<HomeBloc, HomeState>(
+                builder: (context, state) {
+                  if (state is HomeLoading) {
+                    return SizedBox(
+                      height: MediaQuery.sizeOf(context).height,
+                      child: const Center(
+                        child: CircularProgressIndicator(color: primaryBlue),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.notifications_none, color: Colors.white),
+                    );
+                  }
+
+                  if (state is HomeError) {
+                    return SizedBox(
+                      height: MediaQuery.sizeOf(context).height,
+                      child: ConnectionErrorView(
+                        onRetry: () {
+                          context.read<HomeBloc>().add(
+                            FetchHomeData(city: _selectedCity),
+                          );
+                        },
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  const Text('Hola, Lector', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                  const Text('Tu centro de lectura e intercambios', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                  const SizedBox(height: 30),
+                    );
+                  }
 
-                  // ENLACES RÁPIDOS
-                  Row(
-                    children: [
-                      Expanded(child: _buildActionCard('Catálogo', Icons.search, Colors.blue, () {})),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildActionCard('Historial', Icons.receipt_long, Colors.green, () {})),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(child: _buildActionCard('Mis Eventos', Icons.event_available, Colors.orange, () {})),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildActionCard('Mis Libros', Icons.my_library_books, Colors.purple, () {})),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
+                  if (state is HomeLoaded) {
+                    final latestBooks = state.latestBooks;
+                    final upcomingMeetups = state.upcomingMeetups;
+                    final myAppointments = state.myAppointments;
 
-                  // --- ⚡ LA MAGIA DE LARAVEL: ÚLTIMOS LIBROS ---
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Últimos libros añadidos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
-                      Text('Ver catálogo', style: TextStyle(color: primaryBlue, fontSize: 12)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 180,
-                    // AQUÍ CONECTAMOS LA VISTA CON EL BLOC
-                    child: BlocBuilder<BookBloc, BookState>(
-                      builder: (context, state) {
-                        // 1. Si está cargando, mostramos un spinner
-                        if (state is BookLoading) {
-                          return const Center(child: CircularProgressIndicator(color: primaryBlue));
-                        } 
-                        // 2. Si falla el servidor, mostramos el error
-                        else if (state is BookError) {
-                          return Center(
-                            child: Text('Error: ${state.message}', style: const TextStyle(color: Colors.red)),
-                          );
-                        } 
-                        // 3. ¡Éxito! Tenemos los datos de Laravel
-                        else if (state is BookLoaded) {
-                          final libros = state.books;
-
-                          // Si la base de datos está vacía
-                          if (libros.isEmpty) {
-                            return const Center(
-                              child: Text('Aún no hay libros. ¡Sé el primero en subir uno!', style: TextStyle(color: Colors.grey)),
-                            );
-                          }
-
-                          // Pintamos la lista dinámica basada en la BD
-                          return ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: libros.length,
-                            itemBuilder: (context, index) {
-                              final libro = libros[index];
-                              // Inyectamos las variables de tu BookResponse (titulo y autor)
-                              return _buildBookCard(libro.titulo, libro.autor);
-                            },
-                          );
-                        }
-                        
-                        // Estado inicial vacío por si acaso
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // EVENTOS EN TU CIUDAD
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Quedadas en tu ciudad', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
-                      Text('Ver mapa', style: TextStyle(color: primaryBlue, fontSize: 12)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 140,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        _buildAvailableEventCard('Cafetería La Cacharrería', 'Hoy, 18:00h', 'Sevilla'),
-                        _buildAvailableEventCard('Librería Rayuela', 'Mañana, 17:30h', 'Sevilla'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // TUS PRÓXIMAS CITAS
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    width: screenWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))],
-                    ),
-                    child: Column(
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Tus próximas citas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.menu,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.notifications_none,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Hola, $safeUserName',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          'Tu centro de lectura e intercambios',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedCity,
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                            ),
+                            dropdownColor: primaryBlue,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            onChanged: (newValue) {
+                              if (newValue == null) {
+                                return;
+                              }
+
+                              setState(() {
+                                _selectedCity = newValue;
+                              });
+
+                              context.read<HomeBloc>().add(
+                                FetchHomeData(city: newValue),
+                              );
+                            },
+                            items: _cities
+                                .map(
+                                  (city) => DropdownMenuItem<String>(
+                                    value: city,
+                                    child: Text(
+                                      city,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        _buildJoinedEventTile(Icons.check_circle, Colors.green, 'Cafetería La Cacharrería', 'Intercambio: "1984" - Hoy, 18:00h'),
+
+                        const Text(
+                          'Últimos libros añadidos',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 180,
+                          child: latestBooks.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'Aún no hay libros. ¡Sé el primero en subir uno!',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: latestBooks.length,
+                                  itemBuilder: (context, index) {
+                                    final book = latestBooks[index];
+                                    return _buildBookCard(book);
+                                  },
+                                ),
+                        ),
+                        const SizedBox(height: 30),
+
+                        const Text(
+                          'Quedadas en tu ciudad',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 201,
+                          child: upcomingMeetups.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No hay quedadas próximas en tu ciudad.',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: upcomingMeetups.length,
+                                  itemBuilder: (context, index) {
+                                    final meetup = upcomingMeetups[index];
+                                    return _buildAvailableEventCard(
+                                      meetup.title,
+                                      meetup.dateTime.toString(),
+                                      meetup.city,
+                                      meetup.isJoined,
+                                    );
+                                  },
+                                ),
+                        ),
+                        const SizedBox(height: 30),
+
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          width: screenWidth,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Tus próximas citas',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              myAppointments.isEmpty
+                                  ? const Text(
+                                      'No tienes citas confirmadas próximas.',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: myAppointments.length,
+                                      itemBuilder: (context, index) {
+                                        final appointment =
+                                            myAppointments[index];
+                                        final meetup = appointment.meetup;
+
+                                        final title =
+                                            meetup?.title ??
+                                            'Evento sin nombre';
+
+                                        final subtitle =
+                                            'Estado: ${appointment.status}';
+
+                                        return _buildJoinedEventTile(
+                                          Icons.check_circle,
+                                          Colors.green,
+                                          title,
+                                          subtitle,
+                                        );
+                                      },
+                                    ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 80),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 80), 
-                ],
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
               ),
             ),
           ),
@@ -177,72 +308,79 @@ class HomeUserScreen extends StatelessWidget {
 
   // --- WIDGETS AUXILIARES ---
 
-  Widget _buildActionCard(String title, IconData icon, MaterialColor color, VoidCallback onTap) {
+  // ¡He devuelto el _buildBookCard para que el listado funcione!
+  Widget _buildBookCard(Book book) {
     return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)),
+        );
+      },
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        width: 120,
+        margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 5))],
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.shade50, borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, color: color.shade400, size: 24),
+              height: 100,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: const Center(
+                child: Icon(Icons.book, color: Colors.white, size: 40),
+              ),
             ),
-            const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.titulo,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    book.autor,
+                    style: const TextStyle(color: Colors.grey, fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ¡He devuelto el _buildBookCard para que el listado funcione!
-  Widget _buildBookCard(String title, String author) {
-    return Container(
-      width: 120,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 5))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 100,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE2E8F0), 
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            // En un futuro, aquí cambiaremos el Icono por un Image.network(libro.imagenUrl)
-            child: const Center(child: Icon(Icons.book, color: Colors.white, size: 40)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
-                Text(author, style: const TextStyle(color: Colors.grey, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAvailableEventCard(String place, String time, String city) {
+  Widget _buildAvailableEventCard(
+    String place,
+    String time,
+    String city,
+    bool isJoined,
+  ) {
     return Container(
       width: 160,
       margin: const EdgeInsets.only(right: 16, bottom: 8),
@@ -250,47 +388,86 @@ class HomeUserScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF5D9CFF).withValues(alpha: 0.3)),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 3))],
+        border: Border.all(
+          color: const Color(0xFF5D9CFF).withValues(alpha: 0.3),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.location_on, color: Color(0xFF5D9CFF), size: 24),
           const SizedBox(height: 8),
-          Text(place, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 4),
-          Text('$time • $city', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-          const Spacer(),
-          SizedBox(
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  place,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$time • $city',
+                  style: const TextStyle(color: Colors.grey, fontSize: 11),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
             width: double.infinity,
             height: 28,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5D9CFF).withValues(alpha: 0.1),
-                foregroundColor: const Color(0xFF5D9CFF),
-                elevation: 0,
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text('Apuntarse', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+            decoration: BoxDecoration(
+              color: isJoined
+                  ? Colors.green.withValues(alpha: 0.12)
+                  : const Color(0xFF5D9CFF).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-          )
+            alignment: Alignment.center,
+            child: Text(
+              isJoined ? 'Apuntado' : 'Disponible',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isJoined ? Colors.green : const Color(0xFF5D9CFF),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildJoinedEventTile(IconData icon, Color color, String title, String subtitle) {
+  Widget _buildJoinedEventTile(
+    IconData icon,
+    Color color,
+    String title,
+    String subtitle,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(width: 16),
@@ -298,9 +475,18 @@ class HomeUserScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
           ),

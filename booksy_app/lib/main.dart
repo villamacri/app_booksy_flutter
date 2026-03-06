@@ -18,8 +18,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
       ),
-      initialRoute: '/login',
-      onGenerateRoute: AppRoutes.generateRoute, 
+      initialRoute: '/',
+      onGenerateRoute: AppRoutes.generateRoute,
+      onUnknownRoute: AppRoutes.unknownRoute,
     );
   }
 }
